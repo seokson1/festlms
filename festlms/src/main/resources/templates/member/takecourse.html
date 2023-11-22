@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="UTF-8">
+	<title>회원정보</title>
+	 <style>
+            .list table{
+               	width: 100%;
+                border-collapse: collapse;
+            }
+            .list table th, .list table td {
+                border: solid 1px #000;
+            }
+            .pager a.on{
+                font-weight: bold;
+                color: red;
+            }
+            p.nothing{
+                text-align: center;
+                padding: 100px;
+            }
+            .inline-div{
+                display: inline-block;
+            }
+            .list .buttons{
+                padding: 10px 0;
+                position: relative;
+            }
+            .buttons{
+                margin-top: 20px;
+                text-align: center;
+           }
+           .list .buttons .total-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+           }
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+	<script>
+
+	$(function() {
+
+        $('.row-buttons button').on('click', function() {
+
+            if (!confirm('수강취소를 하시겠습니까?')) {
+                return false;
+            }
+
+            var id = $(this).val();
+
+            var url = '/api/member/course/cancel.api';
+            var parameter = {
+                takeCourseId: id
+            };
+            axios.post(url, parameter).then(function(response) {
+                console.log(response);
+                console.log(response.data);
+
+				response.data = response.data || {};
+				response.data.header = response.data.header || {};
+
+				if(!response.data.header.result) {
+					alert(response.data.header.messagge);
+					return false;
+				}
+				
+
+                //정상적일때
+                alert(' 강좌가 정상적으로 취소되었습니다. ');
+                location.reload();
+
+
+            }).catch(function(err) {
+                console.log(err);
+            });
+
+            return false;
+        });
+
+    });
+	</script>
+	</head>
+	<body>
+		<h1>회원정보</h1>
+			<div th:replace="/fragments/layout.html :: fragment-body-menu"></div>
+
+			<div>
+				<a href="/member/info">회원 정보수정</a>
+				|
+				<a href="/member/password">비밀번호 변경</a>
+				|
+				<a href="/member/takecourse">내 수강 목록</a>
+				<hr>
+			</div>
+
+			<div class="list">
+				<table>
+					<thead>
+						<tr>
+							<th>NO</th>
+							<th>등록일</th>
+							<th>강좌명</th>
+							<th>상태</th>
+							<th>비고</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="lists,i : ${list}">
+							<td>
+								<p th:text="${i.count}"></p>
+							</td>
+							<td>
+								<p th:text="${lists.regDtText}"></p>
+							</td>
+							<td>
+								<p th:text="${lists.subject}"></p>
+							</td>
+							<td>
+								<p th:if="${lists.status eq 'REQ'}">수강신청</p>
+								<p th:if="${lists.status eq 'COMPLETE'}">결제완료</p>
+								<p th:if="${lists.status eq 'CANCEL'}">수강취소</p>
+							</td>
+							<td>
+								<div class="row-buttons" th:if="${lists.status eq 'REQ'}">
+									<button type="button" th:value="${lists.id}">수강취소 처리</button>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+	</body>
+</html>
